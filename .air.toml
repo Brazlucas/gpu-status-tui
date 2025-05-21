@@ -1,0 +1,20 @@
+# .air.toml
+
+# Configurações da build
+[build]
+  cmd = "go build -o main.exe ."
+  bin = "main.exe"
+  full_bin = "main.exe"
+  include_ext = ["go"]
+  exclude_dir = ["vendor", "tmp"]
+  exclude_file = ["*_test.go"]
+
+# Logs e estilo
+[log]
+  time = true
+
+[color]
+  main = "yellow"
+  watcher = "cyan"
+  build = "green"
+  runner = "magenta"
