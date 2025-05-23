@@ -11,6 +11,7 @@ import (
 func RenderView(
 	gpu monitor.GPUStats,
 	showInfo, showTemp, showMemory, showEnergy, showHelp bool,
+	frame int,
 ) string {
 	// ---------- Estilos dinâmicos ----------
 	tempColor := pickColor(gpu.Temperature, 50, 70, 80)
@@ -81,9 +82,10 @@ func RenderView(
 	if showEnergy {
 		powerCard = block("⚡ Fan & Energia",
 			fmt.Sprintf(
-				"%s %s\n%s %s",
+				"%s %s %s\n%s %s",
 				LabelStyle.Render("Fan Speed:"),
 				colored(fmt.Sprintf("%d%%", gpu.FanSpeed), fanColor),
+				getFanSpinner(frame), // ← aqui o giro!
 				LabelStyle.Render("Power:"),
 				colored(fmt.Sprintf("%.1f / %.1f W", gpu.PowerDraw, gpu.PowerLimit), powerColor),
 			),
@@ -107,6 +109,13 @@ func RenderView(
 			footer,
 		),
 	)
+}
+
+func getFanSpinner(frame int) string {
+	frames := []string{"|", "/", "-", "\\"}
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("7")).
+		Render(frames[frame%len(frames)])
 }
 
 func collapsedCard(title string) string {

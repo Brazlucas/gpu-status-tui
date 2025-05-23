@@ -19,9 +19,11 @@ type Model struct {
 	ShowMemory bool
 	ShowEnergy bool
 	ShowHelp   bool
+	Frame      int
 }
 
 type tickMsg time.Time
+type dataMsg time.Time
 
 func InitialModel() Model {
 	return Model{
@@ -33,26 +35,38 @@ func InitialModel() Model {
 	}
 }
 
-func tick() tea.Cmd {
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+func tickVisual() tea.Cmd {
+	return tea.Tick(50*time.Millisecond, func(t time.Time) tea.Msg {
 		return tickMsg(t)
 	})
 }
 
+func tickData() tea.Cmd {
+	return tea.Tick(1*time.Second, func(t time.Time) tea.Msg {
+		return dataMsg(t)
+	})
+}
+
 func (m Model) Init() tea.Cmd {
-	return tick()
+	return tea.Batch(tickData(), tickVisual())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
 	case tickMsg:
+		m.Frame++
+		return m, tickVisual()
+
+	case dataMsg:
 		info, err := monitor.GetGPUInfo()
 		if err != nil {
 			m.Err = err
 		} else {
 			m.GPU = info
 		}
-		return m, tick()
+		return m, tickData()
+
 	case tea.KeyMsg:
 		if msg.String() == "q" || msg.String() == "ctrl+c" {
 			return m, tea.Quit
@@ -80,5 +94,5 @@ func (m Model) View() string {
 	if m.Err != nil {
 		return "Erro: " + m.Err.Error()
 	}
-	return ui.RenderView(m.GPU, m.ShowInfo, m.ShowTemp, m.ShowMemory, m.ShowEnergy, m.ShowHelp)
+	return ui.RenderView(m.GPU, m.ShowInfo, m.ShowTemp, m.ShowMemory, m.ShowEnergy, m.ShowHelp, m.Frame)
 }
